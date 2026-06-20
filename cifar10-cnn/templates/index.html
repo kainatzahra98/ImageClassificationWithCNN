@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CIFAR-10 CNN Classifier — AI Image Recognition Dashboard</title>
+    <meta name="description" content="Deep learning image classifier built with PyTorch CNN achieving 86.8% accuracy on CIFAR-10 dataset. Upload images to classify them in real-time.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- Animated background particles -->
+    <div class="bg-particles" id="bgParticles"></div>
+    
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-brand">
+            <span class="nav-icon">🧠</span>
+            <span class="nav-title">CIFAR-10 <span class="accent">CNN</span></span>
+        </div>
+        <div class="nav-links">
+            <a href="#hero" class="nav-link active" data-section="hero">Home</a>
+            <a href="#predict" class="nav-link" data-section="predict">Predict</a>
+            <a href="#results" class="nav-link" data-section="results">Results</a>
+            <a href="#architecture" class="nav-link" data-section="architecture">Architecture</a>
+        </div>
+        <div class="nav-badge">
+            <span class="badge-dot"></span>
+            <span>Model Active</span>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="badge-icon">⚡</span>
+                <span>PyTorch Deep Learning</span>
+            </div>
+            <h1 class="hero-title">
+                Image Classification
+                <br>
+                <span class="gradient-text">with CNN</span>
+            </h1>
+            <p class="hero-subtitle">
+                A Convolutional Neural Network built from scratch using PyTorch, 
+                trained on 60,000 CIFAR-10 images to recognize 10 object categories 
+                with <strong>86.8% accuracy</strong>.
+            </p>
+            <div class="hero-stats">
+                <div class="stat-card">
+                    <span class="stat-value" id="animatedAccuracy">0</span>
+                    <span class="stat-unit">%</span>
+                    <span class="stat-label">Test Accuracy</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="animatedParams">0</span>
+                    <span class="stat-unit">M</span>
+                    <span class="stat-label">Parameters</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value" id="animatedEpochs">0</span>
+                    <span class="stat-unit"></span>
+                    <span class="stat-label">Epochs Trained</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">10</span>
+                    <span class="stat-unit"></span>
+                    <span class="stat-label">Classes</span>
+                </div>
+            </div>
+            <div class="hero-actions">
+                <a href="#predict" class="btn btn-primary" id="btnTryClassifier">
+                    <span>🔍</span> Try the Classifier
+                </a>
+                <a href="#results" class="btn btn-secondary" id="btnViewResults">
+                    <span>📊</span> View Results
+                </a>
+            </div>
+            <div class="class-chips">
+                <span class="chip">✈️ airplane</span>
+                <span class="chip">🚗 automobile</span>
+                <span class="chip">🐦 bird</span>
+                <span class="chip">🐱 cat</span>
+                <span class="chip">🦌 deer</span>
+                <span class="chip">🐶 dog</span>
+                <span class="chip">🐸 frog</span>
+                <span class="chip">🐴 horse</span>
+                <span class="chip">🚢 ship</span>
+                <span class="chip">🚛 truck</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Prediction Section -->
+    <section class="section" id="predict">
+        <div class="section-header">
+            <span class="section-badge">🔮 Live Inference</span>
+            <h2 class="section-title">Classify an Image</h2>
+            <p class="section-subtitle">Upload any image and watch the CNN predict its category in real-time</p>
+        </div>
+
+        <div class="predict-container">
+            <div class="upload-zone" id="uploadZone">
+                <div class="upload-content" id="uploadContent">
+                    <div class="upload-icon">
+                        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                            <polyline points="17 8 12 3 7 8"/>
+                            <line x1="12" y1="3" x2="12" y2="15"/>
+                        </svg>
+                    </div>
+                    <h3>Drop your image here</h3>
+                    <p>or <span class="upload-link">browse files</span></p>
+                    <p class="upload-hint">Supports JPG, PNG, WEBP • Max 10MB</p>
+                </div>
+                <div class="upload-preview" id="uploadPreview" style="display: none;">
+                    <img id="previewImage" src="" alt="Preview">
+                    <button class="btn-remove" id="btnRemove" title="Remove image">✕</button>
+                </div>
+                <input type="file" id="fileInput" accept="image/*" hidden>
+            </div>
+
+            <div class="predict-action">
+                <button class="btn btn-primary btn-large" id="btnPredict" disabled>
+                    <span class="btn-spinner" id="btnSpinner" style="display: none;"></span>
+                    <span id="btnPredictText">🧠 Classify Image</span>
+                </button>
+            </div>
+
+            <div class="results-panel" id="resultsPanel" style="display: none;">
+                <div class="result-hero">
+                    <div class="result-emoji" id="resultEmoji">🐱</div>
+                    <div class="result-info">
+                        <span class="result-label">Predicted Class</span>
+                        <h3 class="result-class" id="resultClass">Cat</h3>
+                        <div class="confidence-meter">
+                            <div class="confidence-bar" id="confidenceBar"></div>
+                        </div>
+                        <span class="confidence-text" id="confidenceText">95.2% confidence</span>
+                    </div>
+                </div>
+
+                <div class="probability-grid" id="probabilityGrid">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Results Section -->
+    <section class="section section-dark" id="results">
+        <div class="section-header">
+            <span class="section-badge">📈 Performance</span>
+            <h2 class="section-title">Training Results</h2>
+            <p class="section-subtitle">30 epochs of training on 50,000 images with comprehensive evaluation</p>
+        </div>
+
+        <div class="results-grid">
+            <div class="result-card" id="cardTraining">
+                <div class="card-header">
+                    <h3>📊 Training Curves</h3>
+                    <span class="card-tag">Accuracy & Loss</span>
+                </div>
+                <div class="card-image">
+                    <img src="/results/training_results.png" alt="Training accuracy and loss curves over 30 epochs" loading="lazy">
+                </div>
+                <div class="card-footer">
+                    <div class="metric">
+                        <span class="metric-label">Best Test Acc</span>
+                        <span class="metric-value">86.8%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Final Train Acc</span>
+                        <span class="metric-value">~90%</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card" id="cardConfusion">
+                <div class="card-header">
+                    <h3>🔢 Confusion Matrix</h3>
+                    <span class="card-tag">10 × 10 Classes</span>
+                </div>
+                <div class="card-image">
+                    <img src="/results/confusion_matrix.png" alt="Confusion matrix showing per-class classification performance" loading="lazy">
+                </div>
+                <div class="card-footer">
+                    <div class="metric">
+                        <span class="metric-label">Best Class</span>
+                        <span class="metric-value">Frog (94.4%)</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Hardest Class</span>
+                        <span class="metric-value">Cat (67.2%)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card" id="cardSamples">
+                <div class="card-header">
+                    <h3>🖼️ Sample Images</h3>
+                    <span class="card-tag">CIFAR-10 Dataset</span>
+                </div>
+                <div class="card-image">
+                    <img src="/results/sample_images.png" alt="Sample images from CIFAR-10 dataset showing various categories" loading="lazy">
+                </div>
+                <div class="card-footer">
+                    <div class="metric">
+                        <span class="metric-label">Image Size</span>
+                        <span class="metric-value">32 × 32 px</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Total Images</span>
+                        <span class="metric-value">60,000</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Per-Class Performance -->
+        <div class="class-performance" id="classPerformance">
+            <h3 class="perf-title">Per-Class Accuracy</h3>
+            <div class="perf-bars">
+                <div class="perf-item">
+                    <span class="perf-emoji">✈️</span>
+                    <span class="perf-name">airplane</span>
+                    <div class="perf-bar-track"><div class="perf-bar-fill" style="--width: 90.3%; --delay: 0;"></div></div>
+                    <span class="perf-value">90.3%</span>
+                </div>
+                <div class="perf-item">
+                    <span class="perf-emoji">🚗</span>
+                    <span class="perf-name">automobile</span>
+                    <div class="perf-bar-track"><div class="perf-bar-fill" style="--width: 91.5%; --delay: 1;"></div></div>
+                    <span class="perf-value">91.5%</span>
+                </div>
+                <div class="perf-item">
+                    <span class="perf-emoji">🐦</span>
+                    <span class="perf-name">bird</span>
+                    <div class="perf-bar-track"><div class="perf-bar-fill" style="--width: 78.3%; --delay: 2;"></div></div>
+                    <span class="perf-value">78.3%</span>
+                </div>
+                <div class="perf-item">
+                    <span class="perf-emoji">🐱</span>
+                    <span class="perf-name">cat</span>
+                    <div class="perf-bar-track"><div class="perf-bar-fill" style="--width: 67.2%; --delay: 3;"></div></div>
+                    <span class="perf-value">67.2%</span>
+                </div>
+                <div class="perf-item">
+                    <span class="perf-emoji">🦌</span>
+                    <span class="perf-name">deer</span>
+                    <div class="perf-bar-track"><div class="perf-bar-fill" style="--width: 86.6%; --delay: 4;"></div></div>
+                    <span class="perf-value">86.6%</span>
+                </div>
+                <div class="perf-item">
+                    <span class="perf-emoji">🐶</span>
+                    <span class="perf-name">dog</span>
+                    <div class="perf-bar-track"><div class="perf-bar-fill" style="--width: 84.3%; --delay: 5;"></div></div>
+                    <span class="perf-value">84.3%</span>
+                </div>
+                <div class="perf-item">
+                    <span class="perf-emoji">🐸</span>
+                    <span class="perf-name">frog</span>
+                    <div class="perf-bar-track"><div class="perf-bar-fill" style="--width: 94.4%; --delay: 6;"></div></div>
+                    <span class="perf-value">94.4%</span>
+                </div>
+                <div class="perf-item">
+                    <span class="perf-emoji">🐴</span>
+                    <span class="perf-name">horse</span>
+                    <div class="perf-bar-track"><div class="perf-bar-fill" style="--width: 88.6%; --delay: 7;"></div></div>
+                    <span class="perf-value">88.6%</span>
+                </div>
+                <div class="perf-item">
+                    <span class="perf-emoji">🚢</span>
+                    <span class="perf-name">ship</span>
+                    <div class="perf-bar-track"><div class="perf-bar-fill" style="--width: 92.9%; --delay: 8;"></div></div>
+                    <span class="perf-value">92.9%</span>
+                </div>
+                <div class="perf-item">
+                    <span class="perf-emoji">🚛</span>
+                    <span class="perf-name">truck</span>
+                    <div class="perf-bar-track"><div class="perf-bar-fill" style="--width: 92.9%; --delay: 9;"></div></div>
+                    <span class="perf-value">92.9%</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Architecture Section -->
+    <section class="section" id="architecture">
+        <div class="section-header">
+            <span class="section-badge">🏗️ Model Design</span>
+            <h2 class="section-title">CNN Architecture</h2>
+            <p class="section-subtitle">A 3-block convolutional network with BatchNorm, Dropout, and a fully-connected classifier</p>
+        </div>
+
+        <div class="arch-flow">
+            <div class="arch-node arch-input" id="archInput">
+                <div class="arch-node-icon">📷</div>
+                <div class="arch-node-title">Input</div>
+                <div class="arch-node-detail">3 × 32 × 32</div>
+                <div class="arch-node-desc">RGB Image</div>
+            </div>
+            <div class="arch-arrow">→</div>
+
+            <div class="arch-node arch-conv" id="archBlock1">
+                <div class="arch-node-icon">🔲</div>
+                <div class="arch-node-title">Block 1</div>
+                <div class="arch-node-detail">32 filters</div>
+                <div class="arch-node-desc">Conv → BN → ReLU × 2<br>MaxPool → Dropout</div>
+                <div class="arch-output-shape">32 × 16 × 16</div>
+            </div>
+            <div class="arch-arrow">→</div>
+
+            <div class="arch-node arch-conv" id="archBlock2">
+                <div class="arch-node-icon">🔳</div>
+                <div class="arch-node-title">Block 2</div>
+                <div class="arch-node-detail">64 filters</div>
+                <div class="arch-node-desc">Conv → BN → ReLU × 2<br>MaxPool → Dropout</div>
+                <div class="arch-output-shape">64 × 8 × 8</div>
+            </div>
+            <div class="arch-arrow">→</div>
+
+            <div class="arch-node arch-conv" id="archBlock3">
+                <div class="arch-node-icon">⬛</div>
+                <div class="arch-node-title">Block 3</div>
+                <div class="arch-node-detail">128 filters</div>
+                <div class="arch-node-desc">Conv → BN → ReLU × 2<br>MaxPool → Dropout</div>
+                <div class="arch-output-shape">128 × 4 × 4</div>
+            </div>
+            <div class="arch-arrow">→</div>
+
+            <div class="arch-node arch-fc" id="archClassifier">
+                <div class="arch-node-icon">🧠</div>
+                <div class="arch-node-title">Classifier</div>
+                <div class="arch-node-detail">512 → 10</div>
+                <div class="arch-node-desc">Flatten → FC → ReLU<br>Dropout → FC</div>
+                <div class="arch-output-shape">10 classes</div>
+            </div>
+        </div>
+
+        <!-- Tech Stack -->
+        <div class="tech-grid">
+            <div class="tech-card" id="techPytorch">
+                <div class="tech-icon">🔥</div>
+                <h4>PyTorch</h4>
+                <p>Deep learning framework</p>
+            </div>
+            <div class="tech-card" id="techAdam">
+                <div class="tech-icon">⚙️</div>
+                <h4>Adam Optimizer</h4>
+                <p>lr = 0.001</p>
+            </div>
+            <div class="tech-card" id="techBatchNorm">
+                <div class="tech-icon">📐</div>
+                <h4>BatchNorm</h4>
+                <p>Stabilizes training</p>
+            </div>
+            <div class="tech-card" id="techDropout">
+                <div class="tech-icon">🎯</div>
+                <h4>Dropout</h4>
+                <p>0.25 & 0.5 rates</p>
+            </div>
+            <div class="tech-card" id="techScheduler">
+                <div class="tech-icon">📉</div>
+                <h4>LR Scheduler</h4>
+                <p>ReduceOnPlateau</p>
+            </div>
+            <div class="tech-card" id="techCrossEntropy">
+                <div class="tech-icon">📊</div>
+                <h4>CrossEntropy</h4>
+                <p>Loss function</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer" id="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <span class="nav-icon">🧠</span>
+                <span>CIFAR-10 CNN Classifier</span>
+            </div>
+            <p class="footer-text">Built from scratch with PyTorch • Trained on 60,000 images • 86.8% Test Accuracy</p>
+            <div class="footer-links">
+                <span class="footer-link">Python</span>
+                <span class="footer-dot">•</span>
+                <span class="footer-link">PyTorch</span>
+                <span class="footer-dot">•</span>
+                <span class="footer-link">Flask</span>
+                <span class="footer-dot">•</span>
+                <span class="footer-link">CIFAR-10</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
